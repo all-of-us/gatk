@@ -25,9 +25,9 @@ else
 fi
 echo "Docker build done =========="
 echo "Putting the newly built docker image into the json parameters"
-cd $WORKING_DIR/gatk/scripts/
-sed -r "s/__GATK_DOCKER__/broadinstitute\/gatk\:$HASH_TO_USE/g" variantstore_cromwell_tests/import_array_manifest_test.json >$WORKING_DIR/import_array_manifest_test_tmp.json
-sed -r "s/__GATK_DOCKER__/broadinstitute\/gatk\:$HASH_TO_USE/g" variantstore_cromwell_tests/import_arrays_test.json >$WORKING_DIR/import_arrays_test_tmp.json
+CROMWELL_TEST_DIR="${WORKING_DIR}/gatk/scripts/variantstore_cromwell_tests"
+sed -r "s/__GATK_DOCKER__/broadinstitute\/gatk\:$HASH_TO_USE/g" $CROMWELL_TEST_DIR/import_array_manifest_test.json >$WORKING_DIR/import_array_manifest_test_tmp.json
+sed -r "s/__GATK_DOCKER__/broadinstitute\/gatk\:$HASH_TO_USE/g" $CROMWELL_TEST_DIR/import_arrays_test.json >$WORKING_DIR/import_arrays_test_tmp.json
 sed -r "s/__TABLE_NAME__/$UUID/g" $WORKING_DIR/import_array_manifest_test_tmp.json > $WORKING_DIR/import_array_manifest_test_mod.json
 sed -r "s/__UUID__/$UUID/g" $WORKING_DIR/import_arrays_test_tmp.json > $WORKING_DIR/import_arrays_test_mod.json
 echo "MANIFEST JSON FILE (modified) ======="
@@ -35,7 +35,7 @@ cat $WORKING_DIR/import_array_manifest_test_mod.json
 echo "INGEST JSON FILE (modified) ======="
 cat $WORKING_DIR/import_arrays_test_mod.json
 
-sed -r "s|__SERVICE_ACCOUNT__|$GOOGLE_APPLICATION_CREDENTIALS|g" variantstore_cromwell_tests/local-with-gcs.conf >$WORKING_DIR/set_up.conf
+sed -r "s|__SERVICE_ACCOUNT__|$GOOGLE_APPLICATION_CREDENTIALS|g" $CROMWELL_TEST_DIR/local-with-gcs.conf >$WORKING_DIR/set_up.conf
 echo "Updated local_backend.conf with service account"
 
 echo "Running ImportArrayManifest WDL through cromwell"
@@ -44,5 +44,4 @@ ln -fs $WORKING_DIR/gatk/scripts/variantstore_wdl/ImportArrayManifest.wdl
 
 echo "Running ImportArrays WDL through cromwell"
 ln -fs $WORKING_DIR/gatk/scripts/variantstore_wdl/ImportArrays.wdl
-ln -fs $WORKING_DIR/gatk/scripts/mitochondria_m2_wdl/CreateArrayImportTsvs.wdl
 sudo java -Dconfig.file=$WORKING_DIR/set_up.conf -jar $CROMWELL_JAR run $WORKING_DIR/gatk/scripts/variantstore_wdl/ImportArrays.wdl -i $WORKING_DIR/import_arrays_test_mod.json
